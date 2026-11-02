@@ -1,0 +1,4 @@
+- insert:
+    - id: skill-router
+      name: dsh-skill-router
+      config: {}
