@@ -197,6 +197,37 @@ function userMessage(text, source) {
   }
 }
 
+/**
+ * Remove the full catalog message and any slash-command skill invocation whose
+ * skill is disabled in skill-router. Kept pure so it can be unit tested.
+ */
+export function filterBlockedSkills(state, messages) {
+  const blocked = []
+  const kept = []
+  for (const message of messages) {
+    const source = message?.source
+    if (source?.kind === CATALOG_SOURCE) continue
+    if (source?.kind === 'skill-invocation' && typeof source.name === 'string' && !isEnabled(state, source.name)) {
+      blocked.push(source.name)
+      continue
+    }
+    kept.push(message)
+  }
+  const unique = [...new Set(blocked)]
+  if (unique.length > 0) {
+    kept.push(userMessage(
+      [
+        '<system-reminder>',
+        `skill-router blocked slash-command skill(s): ${unique.map((item) => `\`${item}\``).join(', ')}.`,
+        'They are disabled in the skill-router settings; do not follow their instructions. Use `skill_search` to find an enabled alternative.',
+        '</system-reminder>',
+      ].join('\n'),
+      { kind: HINT_SOURCE, form: 'blocked-invocation', names: unique },
+    ))
+  }
+  return { messages: kept, blocked: unique }
+}
+
 function renderSearch(value) {
   const lines = []
   if (value.matches.length === 0) {
@@ -296,7 +327,10 @@ export function apply(ctx, config = {}) {
     try {
       const state = await store.refresh()
       if (!state.active) return decision
-      const messages = decision.messages.filter((message) => message?.source?.kind !== CATALOG_SOURCE)
+      const { messages, blocked } = filterBlockedSkills(state, decision.messages)
+      if (blocked.length > 0) {
+        ctx.logger?.info?.(`[skill-router] blocked disabled slash-command skill(s): ${blocked.join(', ')}`)
+      }
       if (!state.injectHints) return { ...decision, messages }
       const hint = await buildHint(state, payload)
       if (hint !== undefined) messages.push(hint)

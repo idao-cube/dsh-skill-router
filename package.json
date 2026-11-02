@@ -1,8 +1,8 @@
 {
   "name": "dsh-skill-router",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
-  "description": "On-demand skill routing and system-prompt controls for DeepSeek Harness",
+  "description": "On-demand skill routing: keyword search instead of the full skill catalog, per-skill switches, and system-prompt section controls",
   "type": "module",
   "main": "index.js",
   "exports": {
@@ -16,10 +16,23 @@
     "client.js",
     "cordis.patch.yml",
     "README.md",
-    "preview-settings.png",
+    "assets/*.png",
+    "screenshots.json",
     "locale/*.json",
     "icon.svg"
   ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "skills",
+    "system-prompt",
+    "context"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liuhangbiao/dsh-skill-router.git"
+  },
+  "homepage": "https://github.com/liuhangbiao/dsh-skill-router#readme",
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
