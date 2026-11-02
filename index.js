@@ -321,6 +321,10 @@ export function apply(ctx, config = {}) {
   })
 
   // ------------------------------------------------------------- pre-step --
+  // Prepend so this listener is outermost in the waterfall: its post-`next()`
+  // body runs LAST, after dsh-tool-skill has appended the full catalog or a
+  // `/skill` gesture message. That makes the catalog strip and the disabled
+  // slash-command block independent of listener registration order.
   ctx.on('agent/pre-step', async (payload, next) => {
     const decision = await next()
     if (!decision || decision.kind !== 'enter') return decision
@@ -339,7 +343,7 @@ export function apply(ctx, config = {}) {
       ctx.logger?.warn?.(`[skill-router] pre-step failed: ${String(error)}`)
       return decision
     }
-  })
+  }, { prepend: true })
 
   async function buildHint(state, payload) {
     const input = (payload.messages ?? [])
